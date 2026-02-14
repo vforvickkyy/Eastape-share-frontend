@@ -1,0 +1,402 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700&family=Inter:wght@400;500&display=swap");
+
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* BODY BACKGROUND */
+body {
+  font-family: "Inter", sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: #ffffff;
+
+  background: linear-gradient(120deg, #0b0f1a, #000000, #0d1324, #000000);
+  background-size: 300% 300%;
+  animation: slowGradient 40s ease infinite;
+  position: relative;
+}
+
+@keyframes slowGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Ambient Glow */
+body::before {
+  content: "";
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  top: -250px;
+  right: -250px;
+  background: radial-gradient(
+    circle,
+    rgba(123, 140, 255, 0.15),
+    transparent 60%
+  );
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+/* Noise */
+body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("https://www.transparenttextures.com/patterns/asfalt-light.png");
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+/* PAGE */
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 70px;
+  position: relative;
+  z-index: 1;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: "Plus Jakarta Sans";
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.4px;
+}
+
+.logo img {
+  height: 50px;
+  width: auto;
+  display: block;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 14px;
+}
+
+/* MAIN */
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.center {
+  justify-content: center;
+}
+
+/* HERO */
+.hero {
+  width: 45%;
+}
+
+.hero h1 {
+  font-family: "Plus Jakarta Sans";
+  font-size: 56px;
+  line-height: 1.05;
+  letter-spacing: -1px;
+}
+
+.hero span {
+  background: linear-gradient(90deg, #7b8cff, #ff3ae569);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  margin-top: 20px;
+  opacity: 0.75;
+  font-size: 16px;
+  max-width: 420px;
+}
+
+/* ========================= */
+/* GLASS UPLOAD BOX (FIXED) */
+/* ========================= */
+.upload-box {
+  width: 420px;
+  max-height: 520px; /* Instead of fixed height */
+  padding: 30px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(60px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), 0 0 80px rgba(120, 120, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-box:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 60px 120px rgba(0, 0, 0, 0.7),
+    0 0 100px rgba(120, 140, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* DROP AREA */
+.drop-area {
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  padding: 30px;
+  text-align: center;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drop-area:hover {
+  border-color: #7b8cff;
+  background: rgba(255, 255, 255, 0.05);
+  transform: scale(1.02);
+}
+
+/* FILE SECTION (SCROLLABLE) */
+.file-section {
+  margin-top: 20px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0; /* Important for flex scroll */
+  padding-right: 6px;
+}
+
+/* Scrollbar */
+.file-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-section::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.file-section::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* FILE ITEMS */
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.file-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+.file-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-text span {
+  font-size: 14px;
+}
+
+.file-text small {
+  display: block;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.file-item svg {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Upload Bottom Section */
+.upload-actions {
+  margin-top: 15px;
+}
+
+/* PROGRESS */
+.progress-container {
+  margin-top: 10px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #7b8cff, #4f6cff);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 20px rgba(120, 140, 255, 0.6);
+}
+
+/* BUTTONS */
+button {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-weight: 500;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #7b8cff, #ff00dd54);
+  color: white;
+  box-shadow: 0 10px 25px rgba(120, 140, 255, 0.3);
+}
+
+.primary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 40px rgba(120, 140, 255, 0.5);
+}
+
+.ghost-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+.ghost-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+.full-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+/* SUCCESS */
+.success-link {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  align-items: center;
+}
+
+.success-link input {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  font-size: 13px;
+}
+
+/* FOOTER */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  opacity: 0.5;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 15px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .page {
+    padding: 20px;
+  }
+
+  .header {
+    justify-content: center;
+  }
+
+  .nav-buttons {
+    display: none;
+  }
+
+  .hero {
+    display: none;
+  }
+
+  .main {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .upload-box {
+    width: 100%;
+    max-width: 380px;
+    max-height: 460px;
+    margin-top: 40px;
+  }
+
+  .footer {
+    justify-content: center;
+    text-align: center;
+    border: none;
+    padding-top: 20px;
+  }
+
+  .footer span {
+    font-size: 11px;
+    opacity: 0.4;
+  }
+}
+/* DOWNLOAD BUTTON FIXED */
+.download-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #7b8cff, #ff00dd54);
+  box-shadow: 0 8px 20px rgba(120, 140, 255, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+
+  transition: all 0.3s ease;
+
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.download-btn svg {
+  color: white;
+}
+
+.download-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 14px 30px rgba(120, 140, 255, 0.6),
+    0 0 20px rgba(255, 0, 221, 0.4);
+}
