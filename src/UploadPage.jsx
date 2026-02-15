@@ -42,14 +42,10 @@ export default function UploadPage() {
 
     if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext))
       return <FileImage size={20} />;
-
     if (["mp4", "mov", "avi", "mkv"].includes(ext))
       return <FileVideo size={20} />;
-
     if (["mp3", "wav", "aac"].includes(ext)) return <FileAudio size={20} />;
-
     if (ext === "pdf") return <FilePdf size={20} />;
-
     if (["zip", "rar", "7z"].includes(ext)) return <FileZip size={20} />;
 
     return <File size={20} />;
@@ -66,7 +62,7 @@ export default function UploadPage() {
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
-  /* ================= UPLOAD LOGIC ================= */
+  /* ================= REAL UPLOAD ================= */
 
   const uploadFiles = async () => {
     if (!files.length) return;
@@ -76,56 +72,89 @@ export default function UploadPage() {
       setProgress(0);
       setStatusText("Preparing upload...");
 
-      // Generate ONE token from first file
-      const createRes = await fetch(`${API}/api/create-upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: files[0].name,
-          fileSize: files[0].size,
-          fileType: files[0].type,
-        }),
-      });
-
-      const createData = await createRes.json();
-
-      if (!createRes.ok) throw new Error(createData.error);
-
-      const token = createData.token;
+      let token = null;
       let uploadedBytes = 0;
+      const totalBytes = totalSize;
+      const startTime = Date.now();
 
-      // Upload each file
       for (let i = 0; i < files.length; i++) {
-        setStatusText(`Uploading ${files[i].name}...`);
+        const file = files[i];
 
-        const res = await fetch(`${API}/api/create-upload`, {
+        // Create upload entry (first call generates token, next reuse it)
+        const createRes = await fetch(`${API}/api/create-upload`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             token,
-            fileName: files[i].name,
-            fileSize: files[i].size,
-            fileType: files[i].type,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type,
           }),
         });
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        const createData = await createRes.json();
+        if (!createRes.ok) throw new Error(createData.error);
 
-        await fetch(data.uploadUrl, {
-          method: "PUT",
-          body: files[i],
+        token = createData.token;
+
+        await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open("PUT", createData.uploadUrl);
+
+          xhr.upload.onprogress = (event) => {
+            if (event.lengthComputable) {
+              const totalUploaded = uploadedBytes + event.loaded;
+
+              const percent = Math.round((totalUploaded / totalBytes) * 100);
+
+              setProgress(percent);
+
+              const elapsed = (Date.now() - startTime) / 1000;
+
+              const speed = totalUploaded / elapsed;
+
+              const speedMB = (speed / (1024 * 1024)).toFixed(2);
+
+              const remainingBytes = totalBytes - totalUploaded;
+
+              const etaSeconds = speed > 0 ? remainingBytes / speed : 0;
+
+              const eta =
+                etaSeconds > 60
+                  ? `${Math.floor(etaSeconds / 60)}m ${Math.floor(
+                      etaSeconds % 60
+                    )}s`
+                  : `${Math.floor(etaSeconds)}s`;
+
+              setStatusText(
+                `Uploading ${file.name} • ${speedMB} MB/s • ETA ${eta}`
+              );
+            }
+          };
+
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              uploadedBytes += file.size;
+              resolve();
+            } else {
+              reject(new Error("Upload failed"));
+            }
+          };
+
+          xhr.onerror = () => reject(new Error("Upload failed"));
+
+          xhr.send(file);
         });
-
-        uploadedBytes += files[i].size;
-        const pct = Math.round((uploadedBytes / totalSize) * 100);
-        setProgress(pct);
       }
 
+      setProgress(100);
       setStatusText("Finalizing...");
-      setGeneratedLink(`${window.location.origin}/share/${token}`);
-      setUploading(false);
-      setStatusText("");
+
+      setTimeout(() => {
+        setGeneratedLink(`${window.location.origin}/share/${token}`);
+        setUploading(false);
+        setStatusText("");
+      }, 600);
     } catch (err) {
       alert("Upload failed: " + err.message);
       setUploading(false);
@@ -203,7 +232,9 @@ export default function UploadPage() {
                   <div className="progress-container">
                     <div
                       className="progress-bar"
-                      style={{ width: `${progress}%` }}
+                      style={{
+                        width: `${progress}%`,
+                      }}
                     />
                   </div>
 
@@ -223,9 +254,11 @@ export default function UploadPage() {
                 <div className="success-link">
                   <CheckCircle size={22} />
                   <input value={generatedLink} readOnly />
+
                   <button className="primary-btn" onClick={copyLink}>
                     {copied ? "Copied" : <Copy size={18} />}
                   </button>
+
                   <button
                     className="ghost-btn"
                     onClick={() =>
