@@ -24,9 +24,11 @@ export default function UploadPage() {
   const [generatedLink, setGeneratedLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [statusText, setStatusText] = useState("");
+  const [dragActive, setDragActive] = useState(false);
 
   const inputRef = useRef();
   const navigate = useNavigate();
+  const dragCounter = useRef(0);
 
   /* ================= HELPERS ================= */
 
@@ -62,7 +64,43 @@ export default function UploadPage() {
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
-  /* ================= REAL UPLOAD ================= */
+  /* ================= DRAG & DROP (SAFE) ================= */
+
+  const handleDragEnter = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setDragActive(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setDragActive(false);
+    dragCounter.current = 0;
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+      e.dataTransfer.clearData();
+    }
+  };
+
+  /* ================= YOUR ORIGINAL UPLOAD LOGIC ================= */
 
   const uploadFiles = async () => {
     if (!files.length) return;
@@ -80,7 +118,6 @@ export default function UploadPage() {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        // Create upload entry (first call generates token, next reuse it)
         const createRes = await fetch(`${API}/api/create-upload`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -104,31 +141,8 @@ export default function UploadPage() {
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
               const totalUploaded = uploadedBytes + event.loaded;
-
               const percent = Math.round((totalUploaded / totalBytes) * 100);
-
               setProgress(percent);
-
-              const elapsed = (Date.now() - startTime) / 1000;
-
-              const speed = totalUploaded / elapsed;
-
-              const speedMB = (speed / (1024 * 1024)).toFixed(2);
-
-              const remainingBytes = totalBytes - totalUploaded;
-
-              const etaSeconds = speed > 0 ? remainingBytes / speed : 0;
-
-              const eta =
-                etaSeconds > 60
-                  ? `${Math.floor(etaSeconds / 60)}m ${Math.floor(
-                      etaSeconds % 60
-                    )}s`
-                  : `${Math.floor(etaSeconds)}s`;
-
-              setStatusText(
-                `Uploading ${file.name} • ${speedMB} MB/s • ETA ${eta}`
-              );
             }
           };
 
@@ -148,13 +162,11 @@ export default function UploadPage() {
       }
 
       setProgress(100);
-      setStatusText("Finalizing...");
 
       setTimeout(() => {
         setGeneratedLink(`${window.location.origin}/share/${token}`);
         setUploading(false);
-        setStatusText("");
-      }, 600);
+      }, 500);
     } catch (err) {
       alert("Upload failed: " + err.message);
       setUploading(false);
@@ -170,7 +182,19 @@ export default function UploadPage() {
   /* ================= UI ================= */
 
   return (
-    <div className="page">
+    <div
+      className="page"
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      {dragActive && (
+        <div className="drag-overlay">
+          <div className="drag-box">Drop files to upload</div>
+        </div>
+      )}
+
       <header className="header">
         <div className="logo">
           <img src={logo} alt="Eastape Share" />
@@ -232,9 +256,7 @@ export default function UploadPage() {
                   <div className="progress-container">
                     <div
                       className="progress-bar"
-                      style={{
-                        width: `${progress}%`,
-                      }}
+                      style={{ width: `${progress}%` }}
                     />
                   </div>
 

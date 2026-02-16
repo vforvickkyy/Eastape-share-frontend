@@ -14,12 +14,13 @@ import logo from "./assets/logo.png";
 const API = "https://vercel-backend-refined-7o4h.vercel.app";
 
 export default function SharePage() {
-  const { token } = useParams(); // 🔥 FIXED
+  const { token } = useParams();
   const navigate = useNavigate();
 
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [invalid, setInvalid] = useState(false);
+  const [downloadingIndex, setDownloadingIndex] = useState(null);
 
   useEffect(() => {
     if (!token) return;
@@ -42,7 +43,6 @@ export default function SharePage() {
           return;
         }
 
-        // expiry check
         const expired = new Date(data[0].expires_at) < new Date();
 
         if (expired) {
@@ -65,6 +65,7 @@ export default function SharePage() {
 
   const formatSize = (bytes) => {
     if (!bytes) return "0 KB";
+    if (bytes > 1e9) return (bytes / 1e9).toFixed(2) + " GB";
     if (bytes > 1e6) return (bytes / 1e6).toFixed(2) + " MB";
     return (bytes / 1e3).toFixed(2) + " KB";
   };
@@ -84,6 +85,44 @@ export default function SharePage() {
   };
 
   const totalSize = files.reduce((acc, file) => acc + file.file_size, 0);
+
+  /* ================= DOWNLOAD LOGIC ================= */
+
+  const handleDownload = async (file, index) => {
+    try {
+      setDownloadingIndex(index);
+
+      // If you store key in DB use file.key
+      // If not, extract from file_url
+      let key = file.key;
+
+      if (!key && file.file_url) {
+        const url = new URL(file.file_url);
+        key = decodeURIComponent(url.pathname.substring(1));
+      }
+
+      const res = await fetch(
+        `${API}/api/download?key=${encodeURIComponent(
+          key
+        )}&fileName=${encodeURIComponent(file.file_name)}`
+      );
+
+      if (!res.ok) {
+        throw new Error("Download failed");
+      }
+
+      const data = await res.json();
+
+      // Force download
+      window.location.href = data.url;
+    } catch (err) {
+      alert("Download failed");
+    } finally {
+      setDownloadingIndex(null);
+    }
+  };
+
+  /* ================= STATES ================= */
 
   if (loading) {
     return (
@@ -112,11 +151,13 @@ export default function SharePage() {
     );
   }
 
+  /* ================= UI ================= */
+
   return (
     <div className="page">
       <header className="header">
         <div className="logo">
-          <img src={logo} alt="Eastape Studio" />
+          <img src={logo} alt="Eastape Share" />
         </div>
 
         <button className="ghost-btn" onClick={() => navigate("/")}>
@@ -146,14 +187,13 @@ export default function SharePage() {
                   </div>
                 </div>
 
-                <a
-                  href={file.file_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
                   className="download-btn"
+                  onClick={() => handleDownload(file, index)}
+                  disabled={downloadingIndex === index}
                 >
                   <DownloadSimple size={18} weight="bold" />
-                </a>
+                </button>
               </div>
             ))}
           </div>

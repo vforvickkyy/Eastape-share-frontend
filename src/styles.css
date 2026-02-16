@@ -369,34 +369,71 @@ button {
   }
 }
 /* DOWNLOAD BUTTON FIXED */
+/* DOWNLOAD BUTTON FIXED */
 .download-btn {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  min-height: 44px;
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  min-height: 52px;
+
+  flex-shrink: 0; /* 🔥 prevents shrinking inside flex */
+  aspect-ratio: 1 / 1; /* ensures perfect circle */
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 50%;
-
-  background: linear-gradient(135deg, #7b8cff, #ff00dd54);
-  box-shadow: 0 8px 20px rgba(120, 140, 255, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
-
-  transition: all 0.3s ease;
-
+  border: none;
   cursor: pointer;
-  text-decoration: none;
+
+  background: linear-gradient(135deg, #6c7cff, #b33cff);
+  color: white;
+
+  transition: all 0.25s ease;
 }
 
 .download-btn svg {
-  color: white;
+  width: 20px;
+  height: 20px;
 }
 
 .download-btn:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 14px 30px rgba(120, 140, 255, 0.6),
-    0 0 20px rgba(255, 0, 221, 0.4);
+  transform: scale(1.08);
+  box-shadow: 0 8px 20px rgba(108, 124, 255, 0.35);
+}
+
+.download-btn:active {
+  transform: scale(0.96);
+}
+
+.drag-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.drag-box {
+  padding: 40px 70px;
+  border-radius: 24px;
+  border: 2px dashed #7b8cff;
+  font-size: 20px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 0 40px rgba(123, 140, 255, 0.4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
