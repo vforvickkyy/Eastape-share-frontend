@@ -64,7 +64,7 @@ export default function UploadPage() {
 
   const totalSize = files.reduce((acc, file) => acc + file.size, 0);
 
-  /* ================= DRAG & DROP (SAFE) ================= */
+  /* ================= DRAG & DROP ================= */
 
   const handleDragEnter = (e) => {
     e.preventDefault();
@@ -90,7 +90,6 @@ export default function UploadPage() {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-
     setDragActive(false);
     dragCounter.current = 0;
 
@@ -100,7 +99,7 @@ export default function UploadPage() {
     }
   };
 
-  /* ================= YOUR ORIGINAL UPLOAD LOGIC ================= */
+  /* ================= UPLOAD ================= */
 
   const uploadFiles = async () => {
     if (!files.length) return;
@@ -141,8 +140,27 @@ export default function UploadPage() {
           xhr.upload.onprogress = (event) => {
             if (event.lengthComputable) {
               const totalUploaded = uploadedBytes + event.loaded;
+
               const percent = Math.round((totalUploaded / totalBytes) * 100);
               setProgress(percent);
+
+              const elapsed = (Date.now() - startTime) / 1000;
+              const speed = totalUploaded / elapsed;
+              const speedMB = (speed / (1024 * 1024)).toFixed(2);
+
+              const remainingBytes = totalBytes - totalUploaded;
+              const etaSeconds = speed > 0 ? remainingBytes / speed : 0;
+
+              const eta =
+                etaSeconds > 60
+                  ? `${Math.floor(etaSeconds / 60)}m ${Math.floor(
+                      etaSeconds % 60
+                    )}s`
+                  : `${Math.floor(etaSeconds)}s`;
+
+              setStatusText(
+                `Uploading ${file.name} • ${speedMB} MB/s • ETA ${eta}`
+              );
             }
           };
 
@@ -162,11 +180,13 @@ export default function UploadPage() {
       }
 
       setProgress(100);
+      setStatusText("Finalizing...");
 
       setTimeout(() => {
         setGeneratedLink(`${window.location.origin}/share/${token}`);
         setUploading(false);
-      }, 500);
+        setStatusText("");
+      }, 600);
     } catch (err) {
       alert("Upload failed: " + err.message);
       setUploading(false);
