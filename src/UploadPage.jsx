@@ -159,7 +159,8 @@ export default function UploadPage() {
                   : `${Math.floor(etaSeconds)}s`;
 
               setStatusText(
-                `Uploading ${file.name} • ${speedMB} MB/s • ETA ${eta}`
+                `Uploading ${file.name} • ${speedMB} MB/s
+                • Time Remaining ${eta}`
               );
             }
           };
